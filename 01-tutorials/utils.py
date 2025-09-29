@@ -1,8 +1,12 @@
 import boto3
 import json
 import time
+import base64
 from boto3.session import Session
 
+USER_NAME = 'testuser'
+PASSWORD = 'MyPassword123!'
+TEMP_ADMIN_PASSWORD = 'Temp123!'
 
 def setup_cognito_user_pool():
     boto_session = Session()
@@ -34,15 +38,15 @@ def setup_cognito_user_pool():
         # Create User
         cognito_client.admin_create_user(
             UserPoolId=pool_id,
-            Username='testuser',
-            TemporaryPassword='Temp123!',
+            Username=USER_NAME,
+            TemporaryPassword=TEMP_ADMIN_PASSWORD,
             MessageAction='SUPPRESS'
         )
         # Set Permanent Password
         cognito_client.admin_set_user_password(
             UserPoolId=pool_id,
-            Username='testuser',
-            Password='MyPassword123!',
+            Username=USER_NAME,
+            Password=PASSWORD,
             Permanent=True
         )
         # Authenticate User and get Access Token
@@ -50,22 +54,25 @@ def setup_cognito_user_pool():
             ClientId=client_id,
             AuthFlow='USER_PASSWORD_AUTH',
             AuthParameters={
-                'USERNAME': 'testuser',
-                'PASSWORD': 'MyPassword123!'
+                'USERNAME': USER_NAME,
+                'PASSWORD': PASSWORD
             }
         )
         bearer_token = auth_response['AuthenticationResult']['AccessToken']
+        refresh_token = auth_response['AuthenticationResult']['RefreshToken']
         # Output the required values
         print(f"Pool id: {pool_id}")
         print(f"Discovery URL: https://cognito-idp.{region}.amazonaws.com/{pool_id}/.well-known/openid-configuration")
         print(f"Client ID: {client_id}")
         print(f"Bearer Token: {bearer_token}")
+        print(f"Refresh Token: {refresh_token}")
 
         # Return values if needed for further processing
         return {
             'pool_id': pool_id,
             'client_id': client_id,
             'bearer_token': bearer_token,
+            'refresh_token': refresh_token,
             'discovery_url':f"https://cognito-idp.{region}.amazonaws.com/{pool_id}/.well-known/openid-configuration"
         }
     except Exception as e:
@@ -83,8 +90,8 @@ def reauthenticate_user(client_id):
         ClientId=client_id,
         AuthFlow='USER_PASSWORD_AUTH',
         AuthParameters={
-            'USERNAME': 'testuser',
-            'PASSWORD': 'MyPassword123!'
+            'USERNAME': USER_NAME,
+            'PASSWORD': PASSWORD
         }
     )
     bearer_token = auth_response['AuthenticationResult']['AccessToken']
