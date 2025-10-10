@@ -1,7 +1,6 @@
 import boto3
 import json
 import time
-import base64
 from boto3.session import Session
 
 USER_NAME = 'testuser'
