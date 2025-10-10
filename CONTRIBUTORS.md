@@ -36,3 +36,4 @@
 - Sunil Ramachandra
 - Sandeep Raveesh-Babu
 - chintanpatel-ai
+- Evandro Franco
